@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엘린마켓 사기 경고</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (JSX 변환용) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- Lucide Icons (SVG Components) ---
+        const AlertTriangle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        );
+        const ShieldAlert = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        );
+        const Code = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        );
+        const Search = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        );
+        const AlertOctagon = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        );
+        const Lock = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        );
+        const XCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        );
+        const ChevronDown = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"/></svg>
+        );
+        const ChevronUp = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"/></svg>
+        );
+        const MessageCircle = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        );
+        const ExternalLink = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        );
+        const History = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/><path d="M12 7v5l4 2"/></svg>
+        );
+        const Copy = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        );
+        const Check = ({ size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="20 6 9 17 4 12"/></svg>
+        );
+
+        // --- Main Components ---
+
+        const EvidenceCard = ({ icon: Icon, title, children, isOpen, onClick }) => (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4 transition-all duration-300 hover:shadow-md">
+                <button 
+                onClick={onClick}
+                className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none"
+                >
+                <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-lg ${isOpen ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'}`}>
+                    <Icon size={24} />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+                </div>
+                {isOpen ? <ChevronUp className="text-slate-400" /> : <ChevronDown className="text-slate-400" />}
+                </button>
+                
+                <div className={`px-6 transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[1200px] pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className="pt-2 text-slate-600 leading-relaxed">
+                    {children}
+                </div>
+                </div>
+            </div>
+        );
+
+        const CodeSnippet = ({ code, label }) => (
+            <div className="my-4 rounded-lg overflow-hidden border border-slate-200">
+                <div className="bg-slate-100 px-4 py-2 text-xs font-mono text-slate-500 border-b border-slate-200 flex justify-between items-center">
+                <span>{label}</span>
+                <span className="text-red-500 font-bold text-[10px]">SUSPICIOUS CODE DETECTED</span>
+                </div>
+                <div className="bg-slate-900 p-4 overflow-x-auto">
+                <pre className="font-mono text-sm text-green-400">
+                    {code}
+                </pre>
+                </div>
+            </div>
+        );
+
+        const CopyableSource = () => {
+            const [copied, setCopied] = useState(false);
+            const text = "view-source:https://ellinmarket24.net/";
+
+            const handleCopy = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                document.execCommand('copy');
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+                } catch (err) {
+                console.error('Copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            };
+
+            return (
+                <button 
+                onClick={handleCopy}
+                className="w-full text-left group relative"
+                aria-label="소스코드 보기 주소 복사"
+                >
+                <code className="block bg-slate-100 px-3 py-2 rounded text-xs font-mono text-slate-600 overflow-x-auto whitespace-nowrap border border-slate-200 transition-colors group-hover:bg-slate-200 group-hover:border-slate-300 flex items-center justify-between">
+                    <span className="truncate mr-2 font-bold">{text}</span>
+                    {copied ? <Check size={14} className="text-green-600 shrink-0" /> : <Copy size={14} className="text-slate-400 group-hover:text-slate-600 shrink-0" />}
+                </code>
+                <div className={`absolute -top-8 right-0 bg-slate-800 text-white text-[10px] px-2 py-1 rounded transition-opacity pointer-events-none ${copied ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    {copied ? '복사 완료!' : '클릭해서 복사'}
+                </div>
+                </button>
+            );
+        };
+
+        const ScamAlertPage = () => {
+            const [openSection, setOpenSection] = useState('code');
+
+            const toggleSection = (section) => {
+                setOpenSection(openSection === section ? null : section);
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-red-100 selection:text-red-900">
+                {/* Header / Hero Section */}
+                <header className="bg-gradient-to-b from-red-700 to-red-800 text-white pb-20 pt-10 px-4">
+                    <div className="max-w-3xl mx-auto text-center">
+                    <div className="inline-flex items-center gap-2 bg-red-900/50 px-4 py-1.5 rounded-full text-red-100 text-sm font-semibold mb-6 border border-red-500/30">
+                        <AlertTriangle size={16} />
+                        <span>긴급 소비자 주의보</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight leading-tight">
+                        '엘린마켓'은<br className="md:hidden" /> <span className="text-yellow-300 underline decoration-4 underline-offset-4">사기 사이트</span>입니다
+                    </h1>
+                    <p className="text-lg md:text-xl text-red-100 mb-8 leading-relaxed max-w-2xl mx-auto">
+                        중고거래 중 판매자가 안전결제를 이유로<br/>
+                        <strong>ellinmarket24.net</strong> 링크를 보냈다면<br/>
+                        즉시 대화를 중단하고 차단하십시오.
+                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 flex items-center gap-3">
+                        <AlertOctagon className="text-yellow-300" size={24} />
+                        <div className="text-left">
+                            <div className="text-xs text-red-200 uppercase tracking-wider">Scam Type</div>
+                            <div className="font-bold">피싱(Phishing) 결제 유도</div>
+                        </div>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 flex items-center gap-3">
+                        <XCircle className="text-yellow-300" size={24} />
+                        <div className="text-left">
+                            <div className="text-xs text-red-200 uppercase tracking-wider">Risk Level</div>
+                            <div className="font-bold">매우 위험 (금전 탈취)</div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </header>
+
+                <main className="max-w-3xl mx-auto px-4 -mt-16 pb-20 relative z-10">
+                    
+                    {/* Main Content Card */}
+                    <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border-t-4 border-red-600">
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <ShieldAlert className="text-red-600" />
+                        왜 사기 사이트인가요?
+                    </h2>
+                    <p className="text-slate-600 mb-8 leading-relaxed">
+                        해당 사이트는 정상적인 쇼핑몰로 위장하고 있지만, 
+                        내부 소스코드를 분석해보면 <strong>중국 사기 조직이 제작한 템플릿</strong>임이 명백히 드러납니다.
+                        네이버 페이 안전결제를 사칭하여 결제 정보를 탈취하고 금전을 요구하는 전형적인 수법입니다.
+                    </p>
+
+                    {/* Evidence 1: Code Analysis */}
+                    <EvidenceCard 
+                        icon={Code} 
+                        title="증거 1: 소스코드 내 '중국어 병음' 발견" 
+                        isOpen={openSection === 'code'}
+                        onClick={() => toggleSection('code')}
+                    >
+                        <p className="mb-4">
+                        사이트의 스타일(CSS)과 기능을 담당하는 코드 내 변수명이 
+                        <strong> 중국어 발음을 영어로 표기한 '병음(Pinyin)'</strong>으로 작성되어 있습니다.
+                        한국 개발자는 절대 사용하지 않는 방식입니다.
+                        </p>
+                        
+                        <div className="space-y-6">
+                        <div>
+                            <h4 className="font-bold text-slate-800 text-sm mb-2">1. 페이지 관련 클래스명</h4>
+                            <p className="text-sm text-slate-500 mb-2">실제 소스코드 448번째 줄 부근</p>
+                            <CodeSnippet 
+                            label="style.css"
+                            code={`.z_page1 ul li.shouye { ... }   /* 首页 (shǒuyè) = 첫 페이지 */
+.z_page1 ul li.qian10ye { ... } /* 前10页 (qián10yè) = 이전 10페이지 */
+.z_page1 ul li.xia10ye { ... }  /* 下10页 (xià10yè) = 다음 10페이지 */
+.z_page1 ul li.weiye { ... }    /* 尾页 (wěiyè) = 마지막 페이지 */`}
+                            />
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-slate-800 text-sm mb-2">2. 핵심 기능 함수명</h4>
+                            <p className="text-sm text-slate-500 mb-2">사용자 인증 및 검사 함수</p>
+                            <CodeSnippet 
+                            label="script.js"
+                            code={`function lh_jiancha_yh_username() { ... } 
+/* 检查用户 (jiǎnchá yònghù) = 사용자 검사 */
+
+function lh_haobuhao_b() { ... } 
+/* 好不好 (hǎo bù hǎo) = 좋니 안좋니 (상태체크) */
+
+setInterval('fanhuizhuye()', ...); 
+/* 返回主页 (fǎnhuí zhǔyè) = 홈으로 복귀 */`}
+                            />
+                        </div>
+                        </div>
+                    </EvidenceCard>
+
+                    {/* Evidence 2: Fake Safety Payment */}
+                    <EvidenceCard 
+                        icon={Lock} 
+                        title="증거 2: 가짜 안전결제 시스템" 
+                        isOpen={openSection === 'payment'}
+                        onClick={() => toggleSection('payment')}
+                    >
+                        <p className="mb-4">
+                        중고나라, 번개장터 등 플랫폼 내부의 안전결제가 아닌, 
+                        <strong> 판매자가 보내주는 외부 링크</strong>에서의 결제는 100% 사기입니다.
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 text-slate-600 bg-slate-50 p-4 rounded-lg">
+                        <li><span className="font-bold text-red-600">수수료 핑계:</span> "수수료가 입금 안 됐다"며 재입금을 요구합니다.</li>
+                        <li><span className="font-bold text-red-600">환불 핑계:</span> "환불받으려면 동일 금액을 다시 보내야 한다"고 속입니다.</li>
+                        <li><span className="font-bold text-red-600">가짜 네이버페이:</span> 네이버페이 결제창처럼 보이지만 URL이 naver.com이 아닙니다.</li>
+                        </ul>
+                    </EvidenceCard>
+
+                    {/* Evidence 3: Site Structure */}
+                    <EvidenceCard 
+                        icon={Search} 
+                        title="증거 3: 엉성한 사이트 구성" 
+                        isOpen={openSection === 'structure'}
+                        onClick={() => toggleSection('structure')}
+                    >
+                        <p className="mb-4">
+                        '자동차 모형'을 사려는데 가구 사이트를 보내주는 등, 미리 만들어둔 
+                        <strong> '가짜 쇼핑몰 템플릿'</strong>을 돌려막기 하고 있습니다.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 className="font-bold text-slate-800 mb-2">검색 불가</h4>
+                            <p className="text-sm">네이버나 구글에 검색해도 나오지 않는 유령 사이트입니다. URL 뒤의 숫자(24)만 바꿔가며 계속 생성합니다.</p>
+                        </div>
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <h4 className="font-bold text-slate-800 mb-2">폰트 설정</h4>
+                            <p className="text-sm">소스코드 내 폰트 설정에 중국 윈도우 기본 폰트인 <code>Microsoft yahei</code>가 포함되어 있습니다.</p>
+                        </div>
+                        </div>
+                    </EvidenceCard>
+
+                    {/* Evidence 4: Chat Screenshots */}
+                    <EvidenceCard 
+                        icon={MessageCircle} 
+                        title="증거 4: 실제 사기 대화 제보 (모순점 발견)" 
+                        isOpen={openSection === 'chat'}
+                        onClick={() => toggleSection('chat')}
+                    >
+                        <div className="mb-4 p-4 bg-red-50 text-red-800 rounded-lg text-sm border border-red-100">
+                        <strong>🚨 핵심 모순:</strong> 구매자는 <strong>'자동차 모형'</strong>을 산다고 해놓고, 
+                        전혀 상관없는 <strong>'가구/잡화 쇼핑몰(엘린마켓)'</strong> 링크를 보냅니다.
+                        <br className="hidden md:block"/> 이는 사기꾼들이 미리 만들어둔 가짜 사이트 템플릿을 무분별하게 사용하기 때문입니다.
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <div className="relative group overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+                            <img 
+                                src="https://i.imgur.com/EkpMoTJ.png" 
+                                alt="카톡 대화 1: 자동차 모형 확인" 
+                                className="w-full h-auto object-cover"
+                            />
+                            <div className="absolute top-2 left-2 bg-slate-800/80 backdrop-blur text-white text-xs px-2 py-1 rounded font-bold">1. 물품 확인 단계</div>
+                            </div>
+                            <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p className="font-bold text-slate-800 mb-1">상황 분석</p>
+                            구매자(사기범)가 구매하려는 물건이 <strong>'자동차 모형'</strong>임을 명확히 인지하고 대화를 시작합니다. 정상적인 거래처럼 보입니다.
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="relative group overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+                            <img 
+                                src="https://i.imgur.com/SUXq0YD.png" 
+                                alt="카톡 대화 2: 엉뚱한 사이트 링크" 
+                                className="w-full h-auto object-cover"
+                            />
+                            <div className="absolute top-2 left-2 bg-red-600/90 backdrop-blur text-white text-xs px-2 py-1 rounded font-bold animate-pulse">2. 사기 링크 전송</div>
+                            </div>
+                            <div className="text-sm text-slate-600 bg-red-50 p-3 rounded-lg border border-red-100">
+                            <p className="font-bold text-red-700 mb-1">사기 패턴 적발</p>
+                            갑자기 <strong>'엘린마켓'</strong>이라는 링크를 보냅니다. 
+                            <br/>이곳은 가구나 의류를 파는 곳으로 위장된 사이트이며, 
+                            <strong>자동차 모형과는 아무런 관련이 없습니다.</strong>
+                            </div>
+                        </div>
+                        </div>
+                    </EvidenceCard>
+                    </div>
+
+                    {/* Verification Tools Section */}
+                    <div className="mb-8 p-1">
+                    <h3 className="text-xl font-bold text-slate-800 ml-2 mb-4 flex items-center gap-2">
+                        <Search size={20} /> 직접 확인해보기
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Wayback Machine */}
+                        <a 
+                        href="https://web.archive.org/web/20251228045237/https://ellinmarket24.net/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bg-slate-800 hover:bg-slate-700 text-white p-5 rounded-xl flex items-center gap-4 transition-colors group"
+                        >
+                        <div className="bg-slate-700 group-hover:bg-slate-600 p-3 rounded-lg">
+                            <History size={24} />
+                        </div>
+                        <div>
+                            <div className="font-bold text-lg flex items-center gap-2">
+                            웨이백 머신 <ExternalLink size={14} className="opacity-50"/>
+                            </div>
+                            <div className="text-sm text-slate-300 mt-1">
+                            사이트가 폐쇄되더라도<br/>박제된 기록을 확인할 수 있습니다.
+                            </div>
+                        </div>
+                        </a>
+
+                        {/* View Source */}
+                        <div className="bg-white border border-slate-200 p-5 rounded-xl flex items-center gap-4">
+                        <div className="bg-blue-100 text-blue-600 p-3 rounded-lg">
+                            <Code size={24} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="font-bold text-lg text-slate-800 mb-1">소스코드 열람</div>
+                            <div className="text-xs text-slate-500 mb-2">
+                            브라우저 주소창에 아래 내용을<br/>직접 입력하여 중국어 주석을 확인하세요.
+                            </div>
+                            <CopyableSource />
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    {/* Action Guide */}
+                    <div className="space-y-4">
+                    <h3 className="text-xl font-bold text-slate-800 ml-2 mb-4">이미 접속했거나 입금했다면?</h3>
+                    
+                    <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                        <h4 className="font-bold text-red-600 mb-2 flex items-center gap-2">
+                        <XCircle size={20} /> 절대 추가 입금 금지
+                        </h4>
+                        <p className="text-slate-600 text-sm">
+                        "전산 오류다", "계좌가 동결됐다" 등의 핑계로 추가 입금을 요구해도 절대 보내지 마세요. 보낸 돈은 돌려받을 수 없습니다.
+                        </p>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-slate-700">
+                        <h4 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                        <AlertTriangle size={20} /> 즉시 신고 및 차단
+                        </h4>
+                        <p className="text-slate-600 text-sm">
+                        상대방과의 대화 내용을 캡처하고, 해당 계정을 차단하세요. 경찰청 사이버수사국(<a href="https://ecrm.cyber.go.kr" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline hover:text-blue-800">ecrm.cyber.go.kr</a>)에 신고하시기 바랍니다.
+                        </p>
+                    </div>
+                    </div>
+
+                </main>
+
+                <footer className="bg-slate-900 text-slate-400 py-12 px-4 text-center">
+                    <div className="max-w-2xl mx-auto">
+                    <p className="text-sm mb-4">
+                        본 페이지는 공익적 목적으로 제작되었으며, 특정 사이트의 소스코드 분석을 기반으로 작성되었습니다.
+                    </p>
+                    <p className="text-xs text-slate-600">
+                        Analysis based on provided source code from ellinmarket24.net<br/>
+                        &copy; 2025 Anti-Scam
+                    </p>
+                    </div>
+                </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ScamAlertPage />);
+    </script>
+</body>
+</html>
